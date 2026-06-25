@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enhanced Test Report - Playwright</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 12px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+    .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 40px 30px; text-align: center; }
+    .header h1 { font-size: 2.5em; margin-bottom: 10px; font-weight: 600; }
+    .header p { font-size: 1.1em; opacity: 0.95; margin-bottom: 5px; }
+    .header .timestamp { font-size: 0.9em; opacity: 0.85; }
+    .summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; padding: 30px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; }
+    .summary-item { text-align: center; padding: 20px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .summary-item .label { font-size: 0.9em; color: #666; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .summary-item .value { font-size: 2.5em; font-weight: bold; color: #333; }
+    .summary-item.passed .value { color: #28a745; }
+    .summary-item.failed .value { color: #dc3545; }
+    .summary-item.total .value { color: #667eea; }
+    .content { padding: 30px; }
+    .test-case { margin-bottom: 25px; border: 2px solid #e0e0e0; border-radius: 8px; overflow: hidden; background: #fff; transition: all 0.3s ease; }
+    .test-case:hover { box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+    .test-case.passed { border-left: 5px solid #28a745; }
+    .test-case.failed { border-left: 5px solid #dc3545; }
+    .test-header { padding: 15px 20px; background: #f8f9fa; display: flex; align-items: center; gap: 15px; font-weight: 500; border-bottom: 1px solid #e0e0e0; }
+    .test-case.passed .test-header { background: #f0f7f4; }
+    .test-case.failed .test-header { background: #fef5f5; }
+    .test-icon { font-size: 1.5em; font-weight: bold; }
+    .test-case.passed .test-icon { color: #28a745; }
+    .test-case.failed .test-icon { color: #dc3545; }
+    .test-title { flex: 1; color: #333; font-size: 1.1em; }
+    .test-duration { color: #999; font-size: 0.9em; white-space: nowrap; }
+    .test-suite { padding: 8px 20px; font-size: 0.9em; color: #667eea; background: #f0f4ff; border-bottom: 1px solid #e0e0e0; }
+    .test-error { padding: 12px 20px; background: #fff5f5; color: #dc3545; font-size: 0.95em; border-bottom: 1px solid #e0e0e0; font-family: 'Courier New', monospace; word-break: break-word; }
+    .steps-container { padding: 15px 20px; }
+    .step { margin-bottom: 12px; padding: 12px; background: #f8f9fa; border-left: 3px solid #ccc; border-radius: 4px; font-size: 0.95em; }
+    .step.passed { border-left-color: #28a745; background: #f0f7f4; }
+    .step.failed { border-left-color: #dc3545; background: #fef5f5; }
+    .step-header { display: flex; align-items: center; gap: 10px; }
+    .step-icon { font-size: 1.2em; font-weight: bold; }
+    .step.passed .step-icon { color: #28a745; }
+    .step.failed .step-icon { color: #dc3545; }
+    .step-title { flex: 1; color: #333; }
+    .step-duration { color: #999; font-size: 0.85em; white-space: nowrap; }
+    .screenshots-gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(0,0,0,0.1); }
+    .screenshot-item { background: white; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden; transition: all 0.3s ease; }
+    .screenshot-item:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
+    .screenshot-image { display: block; width: 100%; height: auto; max-height: 300px; object-fit: cover; cursor: pointer; transition: all 0.3s ease; }
+    .screenshot-image:hover { transform: scale(1.02); }
+    .screenshot-name { padding: 6px 8px; font-size: 0.75em; color: #666; background: #f5f5f5; word-break: break-all; border-top: 1px solid #e0e0e0; }
+    .footer { padding: 20px 30px; background: #f8f9fa; border-top: 1px solid #e0e0e0; text-align: center; color: #666; font-size: 0.9em; }
+    .no-tests { padding: 40px; text-align: center; color: #999; }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.8); align-items: center; justify-content: center; }
+    .modal.open { display: flex; }
+    .modal-content { max-width: 90%; max-height: 90%; position: relative; }
+    .modal-image { max-width: 100%; max-height: 100%; }
+    .modal-close { position: absolute; top: -30px; right: 0; font-size: 28px; font-weight: bold; color: white; cursor: pointer; }
+    @media (max-width: 768px) {
+      .header h1 { font-size: 1.8em; }
+      .summary { grid-template-columns: 1fr; }
+      .screenshots-gallery { grid-template-columns: 1fr; }
+      .test-header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🧪 Test Execution Report</h1>
+      <p>Automated Test Results with Step Details & Screenshots</p>
+      <p class="timestamp">Generated on 15/6/2026, 7:18:15 am</p>
+    </div>
+
+    <div class="summary">
+      <div class="summary-item total">
+        <div class="label">Total Tests</div>
+        <div class="value">2</div>
+      </div>
+      <div class="summary-item passed">
+        <div class="label">✓ Passed</div>
+        <div class="value">2</div>
+      </div>
+      <div class="summary-item failed">
+        <div class="label">✗ Failed</div>
+        <div class="value">0</div>
+      </div>
+      <div class="summary-item total">
+        <div class="label">Pass Rate</div>
+        <div class="value">100%</div>
+      </div>
+    </div>
+
+    <div class="content">
+      
+        <div class="test-case passed">
+          <div class="test-header">
+            <span class="test-icon">✓</span>
+            <span class="test-title">Login with valid credentials</span>
+            <span class="test-duration">12946ms</span>
+          </div>
+          <div class="test-suite">Login Functionality Tests</div>
+          
+          <div class="steps-container">
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">2009ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">2009ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">80ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">80ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">543ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">543ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">543ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">3143ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">1190ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">120ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">120ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">34ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">91ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">23ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">96ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">96ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">1443ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">2294ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">133ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">341ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">341ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">0ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">237ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">237ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">237ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">0ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">198ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">198ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with valid credentials</span>
+              <span class="step-duration">198ms</span>
+            </div>
+            
+          </div>
+        </div>
+        </div>
+      
+        <div class="test-case passed">
+          <div class="test-header">
+            <span class="test-icon">✓</span>
+            <span class="test-title">Login with Empty credentials</span>
+            <span class="test-duration">6702ms</span>
+          </div>
+          <div class="test-suite">Login Functionality Tests</div>
+          
+          <div class="steps-container">
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">12ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">12ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">206ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">206ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">206ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">3773ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">1381ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">107ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">107ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">104ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">29ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">73ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">48ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">0ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">34ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">96ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">96ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">0ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">0ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">119ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">119ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">119ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">0ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">160ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">160ms</span>
+            </div>
+            
+          </div>
+        
+          <div class="step passed">
+            <div class="step-header">
+              <span class="step-icon passed">✓</span>
+              <span class="step-title">Login with Empty credentials</span>
+              <span class="step-duration">160ms</span>
+            </div>
+            
+          </div>
+        </div>
+        </div>
+      
+    </div>
+
+    <div class="footer">
+      <p>Report generated by Enhanced Test Reporter | 9 screenshots embedded</p>
+    </div>
+  </div>
+
+  <div class="modal" id="imageModal">
+    <div class="modal-content">
+      <span class="modal-close" onclick="closeModal()">&times;</span>
+      <img class="modal-image" id="modalImage">
+    </div>
+  </div>
+
+  <script>
+    function openImage(src) {
+      const modal = document.getElementById('imageModal');
+      const modalImage = document.getElementById('modalImage');
+      modalImage.src = src;
+      modal.classList.add('open');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('imageModal');
+      modal.classList.remove('open');
+    }
+
+    document.getElementById('imageModal').addEventListener('click', function(event) {
+      if (event.target === this) {
+        closeModal();
+      }
+    });
+
+    document.addEventListener('keydown', function(event) {
+      if (event.key === 'Escape') {
+        closeModal();
+      }
+    });
+  </script>
+</body>
+</html>
