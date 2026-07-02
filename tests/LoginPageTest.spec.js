@@ -14,7 +14,7 @@ test.afterEach(async ({page})=>{
 })
 
 
-test.describe('Login Functionality Tests', () => {
+test.describe('Login Functionality @Tests', () => {
     test('Login with valid credentials', async ({ page, baseURL},testInfo) => {
 
         await ReportUtil.logStepWithScreenshot(page,testInfo,"Login Page ", async ()=>{
