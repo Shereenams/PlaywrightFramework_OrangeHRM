@@ -1,21 +1,9 @@
-const { test, expect } = require('@playwright/test');
-const LoginPage = require('../pages/LoginPage');
+const { test, expect } = require('../fixtures/orangeHrmFixture');
 const LoginData = require('../data/LoginData');
 const ReportUtil =require('../utils/reportsUtil')
 
-let loginPage;
-
-test.beforeEach(async ({page})=>{
-        loginPage = new LoginPage(page, LoginData.baseURL);
-        await loginPage.loadLoginPage();
-})
-test.afterEach(async ({page})=>{
-    page.close();
-})
-
-
 test.describe('Login Functionality @Tests', () => {
-    test('Login with valid credentials', async ({ page, baseURL},testInfo) => {
+    test('Login with valid credentials', async ({ page, loginPage },testInfo) => {
 
         await ReportUtil.logStepWithScreenshot(page,testInfo,"Login Page ", async ()=>{
             await loginPage.enterUsername(LoginData.Username);
@@ -27,8 +15,19 @@ test.describe('Login Functionality @Tests', () => {
         })
 
     });
+        test('Login with invalid credentials', async ({ page, loginPage }, testInfo) => {
 
-    test('Login with Empty credentials', async ({ page, baseURL }, testInfo) => {
+        await ReportUtil.logStepWithScreenshot(page,testInfo,"Login Page with Invalid Cred ", async ()=>{
+            await loginPage.enterUsername(LoginData.InvalidUsername);
+            await loginPage.enterPassword(LoginData.InvalidPassword);
+        })
+        await ReportUtil.logStepWithScreenshot(page,testInfo,"Error message for Invalid cred ", async ()=>{
+            await loginPage.clickInvalidLoginButton();
+            await expect(loginPage.verifyLoginFailureInvalid()).toBeTruthy();
+        });
+
+    });
+    test('Login with Empty credentials', async ({ page, loginPage }, testInfo) => {
 
         await ReportUtil.logStepWithScreenshot(page,testInfo,"Login Page with Invalid Cred ", async ()=>{
             await loginPage.enterUsername(LoginData.EmptyUsername);
