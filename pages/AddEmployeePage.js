@@ -1,5 +1,6 @@
 const BasePage = require('./BasePage');
 const { expect } = require('@playwright/test');
+const { RandomGenerator } = require('../utils/radomUtil');
 
 class AddEmployeePage extends BasePage {
 
