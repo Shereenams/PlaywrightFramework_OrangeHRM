@@ -2,6 +2,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
+  fullyParallel: true,
+  workers: 2, // Limit to 1 worker for sequential execution
   testDir: './tests',
   timeout: 6 * 60 * 1000, // global test timeout (5 min)
   reporter: [['html'],['dot'],['list'],['allure-playwright']],

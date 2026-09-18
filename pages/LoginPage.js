@@ -1,8 +1,10 @@
 // LoginPage.js
 const { expect } = require('@playwright/test');
-class LoginPage {
+const BasePage = require('./BasePage');
+
+class LoginPage extends BasePage {
     constructor(page, baseURL) {
-        this.page = page;
+        super(page);
 
         this.usernameInput = page.getByPlaceholder('Username');
         this.passwordInput = page.getByPlaceholder('Password');
@@ -11,10 +13,19 @@ class LoginPage {
         this.baseURL = baseURL;
         //this.baseurl = 'https://opensource-demo.orangehrmlive.com/web/index.php/auth/login';
         this.emptyMessage = page.getByText('Required').first();
+        this.invalidMessage = page.getByText('Invalid credentials').first();
     }
 
     async loadLoginPage() {
         await this.page.goto('/web/index.php/auth/login');
+    }
+
+    async verifyLoginPageUrl() {
+        await expect(this.page).toHaveURL(/\/web\/index\.php\/auth\/login/);
+    }
+
+    async verifyUsernameFieldVisible() {
+        await expect(this.usernameInput).toBeVisible();
     }
 
     async enterUsername(username) {
@@ -32,6 +43,10 @@ class LoginPage {
 
 
     }
+     async clickInvalidLoginButton() {
+        await this.loginButton.click();
+        await this.page.waitForLoadState('networkidle');
+     }
     async clickLoginButtonEmpty() {
         await this.loginButton.click();
         await this.page.waitForLoadState('networkidle');
@@ -48,6 +63,10 @@ class LoginPage {
     async verifyLoginFailure() {
         await this.page.waitForLoadState('networkidle');
         await expect(this.emptyMessage).toBeVisible();
+    }
+    async verifyLoginFailureInvalid() {
+        await this.page.waitForLoadState('networkidle');
+        await expect(this.invalidMessage).toBeVisible();
     }
 }
 module.exports = LoginPage;

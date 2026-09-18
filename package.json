@@ -6,7 +6,7 @@
   "scripts": {
     "test": "npx playwright test",
     "allure:report": "allure generate allure-results --clean -o allure-report && allure open allure-report",
-    "testrun":"npx playwright test --grep @test"
+    "testrun": "npx playwright test --grep @test"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +16,7 @@
     "@playwright/test": "^1.60.0",
     "@types/node": "^25.9.2",
     "allure": "^3.13.1",
-    "allure-playwright": "^3.10.1"
+    "allure-playwright": "^3.10.1",
+    "dotenv": "^17.4.2"
   }
 }

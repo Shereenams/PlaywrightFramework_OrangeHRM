@@ -1,1 +1,1 @@
-[{"buildOrder":4,"reportUrl":"http://localhost:8080/job/OrangeHRM_Playwright/4/allure","reportName":"AllureReport","data":{"failed":0,"broken":0,"skipped":0,"passed":4,"unknown":0,"total":4}},{"buildOrder":3,"reportUrl":"http://localhost:8080/job/OrangeHRM_Playwright/3/allure","reportName":"AllureReport","data":{"failed":0,"broken":0,"skipped":0,"passed":4,"unknown":0,"total":4}}]
+[{"data":{"failed":0,"broken":0,"skipped":0,"passed":5,"unknown":0,"total":5}}]
